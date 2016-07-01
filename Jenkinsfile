@@ -15,6 +15,8 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
         // run the build a little faster: maven in one thread, gulp test in another
         parallel Java: {
             echo "in java branch"
+            sh "docker ps"
+            sh "docker info"
             sh "mvn -B -Pprod clean verify -DskipTests" // just the war, thank you very much
             sh "mvn -B -Pprod package docker:build"  //stuff into docker image
             echo "lets do docker-compose"
