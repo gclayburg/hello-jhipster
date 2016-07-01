@@ -15,14 +15,16 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
         // run the build a little faster: maven in one thread, gulp test in another
         parallel Java: {
             echo "in java branch"
-            sh "docker ps"
-            sh "docker info"
-            sh "mvn -B -Pprod clean verify -DskipTests" // just the war, thank you very much
-            sh "mvn -B -Pprod package docker:build"  //stuff into docker image
-            echo "lets do docker-compose"
-            sh "docker-compose -f src/main/docker/app.yml up -d"
-            step([$class: 'ArtifactArchiver',artifacts: '**/target/*.war',fingerprint: true])
-            step([$class: 'JUnitResultArchiver',testResults: '**/target/surefire-reports/TEST-*.xml'])
+            parallel JavaPackage: {  //create java war and docker image in one thread, Java testing via maven in another
+                sh "mvn -B -Pprod clean verify -DskipTests" // just the war, thank you very much
+                sh "mvn -B -Pprod package docker:build"  //docker-maven-plugin builds our docker image
+                echo "lets do docker-compose"
+                sh "docker-compose -f src/main/docker/app.yml up -d"
+                step([$class: 'ArtifactArchiver',artifacts: '**/target/*.war',fingerprint: true])
+            }, JavaTest: {
+                sh "mvn -B -Pprod clean verify" // run tests
+                step([$class: 'JUnitResultArchiver',testResults: '**/target/surefire-reports/TEST-*.xml'])
+            }
         },JS: {
             sh "npm install"  //nodejs, npm, and gulp must be installed in Jenkins slave Docker container
             sh "gulp test"
@@ -52,6 +54,9 @@ private void tooloverride() {
 }
 
 private void whereami() {
+    /**
+     * Runs a bunch of tools that we assume are installed on this node
+     */
     echo "Build is running with these settings:"
     sh "pwd"
     sh "ls -la"
@@ -60,6 +65,13 @@ private void whereami() {
 uname -a
 java -version
 mvn -v
+docker ps
+docker info
+docker-compose ps
+docker-compose version
+npm version
+gulp --version
+bower --version
 """
 }
 
