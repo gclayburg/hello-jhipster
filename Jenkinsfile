@@ -67,7 +67,7 @@ java -version
 mvn -v
 docker ps
 docker info
-docker-compose ps
+docker-compose -f src/main/docker/app.yml ps
 docker-compose version
 npm version
 gulp --version
