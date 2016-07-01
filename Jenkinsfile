@@ -17,7 +17,7 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
             echo "in java branch"
             sh "mvn -B -Pprod verify -DskipTests" // just the war, thank you very much
             parallel JavaPackage: {  //create java war and docker image in one thread, Java testing via maven in another
-                sh "mvn -B -Pprod package docker:build"  //docker-maven-plugin builds our docker image
+                sh "mvn docker:build"  //docker-maven-plugin builds our docker image
                 echo "lets do docker-compose"
                 sh "docker-compose -f src/main/docker/app.yml up -d"
                 step([$class: 'ArtifactArchiver',artifacts: '**/target/*.war',fingerprint: true])
