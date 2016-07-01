@@ -17,10 +17,8 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
             echo "in java branch"
             sh "mvn -B -Pprod verify -DskipTests" // just the war, thank you very much
             parallel JavaPackage: {  //create java war and docker image in one thread, Java testing via maven in another
-                sh "mvn docker:build"  //docker-maven-plugin builds our docker image
-                echo "lets do docker-compose"
-                sh "docker-compose -f src/main/docker/app.yml up -d"
                 step([$class: 'ArtifactArchiver',artifacts: '**/target/*.war',fingerprint: true])
+                sh "mvn docker:build"  //docker-maven-plugin builds our docker image
             }, JavaTest: {
                 sh "mvn -B -Pprod verify" // run tests
                 step([$class: 'JUnitResultArchiver',testResults: '**/target/surefire-reports/TEST-*.xml'])
@@ -30,7 +28,8 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
             sh "gulp test"
             step([$class: 'JUnitResultArchiver',testResults: '**/target/test-results/karma/TESTS-results.xml', allowEmptyResults: true]) //name pattern must match path in ./src/test/javascript/karma.conf.js
         }
-        stage 'archive test results/war'
+        stage 'deploy app'
+        sh "docker-compose -f src/main/docker/app.yml up -d"
     }
 }
 
