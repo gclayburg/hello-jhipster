@@ -20,7 +20,7 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
             sh "mvn -B -Pprod clean verify -DskipTests" // just the war, thank you very much
             sh "mvn -B -Pprod package docker:build"  //stuff into docker image
             echo "lets do docker-compose"
-            sh "docker-compose -f src/main/docker/app.yml up"
+            sh "docker-compose -f src/main/docker/app.yml up -d"
             step([$class: 'ArtifactArchiver',artifacts: '**/target/*.war',fingerprint: true])
             step([$class: 'JUnitResultArchiver',testResults: '**/target/surefire-reports/TEST-*.xml'])
         },JS: {
