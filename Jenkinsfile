@@ -15,7 +15,7 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
         // run the build a little faster: maven in one thread, gulp test in another
         parallel Java: {
             echo "in java branch"
-            sh "mvn -B -Pprod verify -DskipTests" // just the war, thank you very much
+            sh "mvn -B -Pprod clean verify -DskipTests" // just the war, thank you very much
             parallel JavaPackage: {  //create java war and docker image in one thread, Java testing via maven in another
                 step([$class: 'ArtifactArchiver',artifacts: '**/target/*.war',fingerprint: true])
                 sh "mvn docker:build"  //docker-maven-plugin builds our docker image
@@ -30,6 +30,7 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
         }
         stage 'deploy app'
         sh "docker-compose -f src/main/docker/app.yml up -d"
+        sh "docker-compose -f src/main/docker/app.yml ps"
     }
 }
 
