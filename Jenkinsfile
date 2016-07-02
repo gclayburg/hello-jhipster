@@ -14,9 +14,10 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
         whereami()
         stage 'maven build/test, gulp test'
 
-        sh "mvn -B -Pprod verify" // run tests
+        sh "mvn -B -Pprod verify docker:build" // run tests
         stage 'docker build'
-        sh "mvn docker:build"  //docker-maven-plugin builds our docker image
+        echo "NA"
+//        sh "mvn docker:build"  //docker-maven-plugin builds our docker image
         stage 'docker up'
         sh "docker-compose -f src/main/docker/app.yml up -d"
         sh "docker-compose -f src/main/docker/app.yml ps"
