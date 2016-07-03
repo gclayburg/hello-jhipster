@@ -1,7 +1,7 @@
 #!groovy
-node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs installed
+wrap([$class: 'TimestamperBuildWrapper']) {  //wrap each Jenkins job console output line with timestamp
     println("begin build")
-    wrap([$class: 'TimestamperBuildWrapper']) {  //wrap each Jenkins job console output line with timestamp
+    node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs installed
         stage "build setup"
         checkout scm
         def ver = regexVersion()
