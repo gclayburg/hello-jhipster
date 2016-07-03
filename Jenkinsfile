@@ -25,6 +25,7 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
             sh "mvn -B docker:build"
             sh "docker-compose -f src/main/docker/app.yml up -d"
             sh "docker-compose -f src/main/docker/app.yml ps"
+            sh "echo \"app should be running at http://\$(docker info | sed -n 's/^Name: //'p):8080/\""
         }
         stage 'docker up'
 //        sh "docker-compose -f src/main/docker/app.yml up -d"
