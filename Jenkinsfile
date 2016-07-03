@@ -1,7 +1,7 @@
 #!groovy
-wrap([$class: 'TimestamperBuildWrapper']) {  //wrap each Jenkins job console output line with timestamp
+node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs installed
     println("begin build")
-    node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs installed
+    wrap([$class: 'TimestamperBuildWrapper']) {  //wrap each Jenkins job console output line with timestamp
         stage "build setup"
         checkout scm
         def ver = regexVersion()
@@ -12,9 +12,9 @@ wrap([$class: 'TimestamperBuildWrapper']) {  //wrap each Jenkins job console out
         }
         tooloverride()
         whereami()
-        stage 'maven build/test, gulp test'
+        stage 'production war'
         sh "mvn  -B clean -Pprod verify -DskipTests"
-        stage 'docker build'
+        stage 'docker image/prod test'
         parallel Java: {
             step([$class: 'ArtifactArchiver',artifacts: '**/target/*.war',fingerprint: true])
             sh "mvn  -B -Pprodtest verify"
@@ -27,19 +27,6 @@ wrap([$class: 'TimestamperBuildWrapper']) {  //wrap each Jenkins job console out
             sh "docker-compose -f src/main/docker/app.yml ps"
             sh "echo \"app should be running at http://\$(docker info | sed -n 's/^Name: //'p):8080/\""
         }
-        stage 'docker up'
-//        sh "docker-compose -f src/main/docker/app.yml up -d"
-//        sh "docker-compose -f src/main/docker/app.yml ps"
-
-        stage 'archive results'
-
-
-
-
-//        runParallel()
-        stage 'deploy app'
-//        sh "docker-compose -f src/main/docker/app.yml up -d"
-//        sh "docker-compose -f src/main/docker/app.yml ps"
     }
 }
 
