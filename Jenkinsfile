@@ -13,27 +13,44 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
         tooloverride()
         whereami()
         stage 'maven build/test, gulp test'
-
-        sh "mvn -B -Pprod verify docker:build" // run tests
+        sh "mvn  -B clean -Pprod verify -DskipTests"
         stage 'docker build'
-        echo "NA"
-//        sh "mvn docker:build"  //docker-maven-plugin builds our docker image
+        parallel Java: {
+            step([$class: 'ArtifactArchiver',artifacts: '**/target/*.war',fingerprint: true])
+            sh "mvn  -B -Pprodtest verify"
+            step([$class: 'JUnitResultArchiver',testResults: '**/target/surefire-reports/TEST-*.xml'])
+            step([$class: 'JUnitResultArchiver',testResults: '**/target/test-results/karma/TESTS-results.xml',allowEmptyResults: true])        //name pattern must match path in ./src/test/javascript/karma.conf.js
+
+        }, docker: {
+            sh "mvn -B docker:build"
+            sh "docker-compose -f src/main/docker/app.yml up -d"
+            sh "docker-compose -f src/main/docker/app.yml ps"
+        }
         stage 'docker up'
-        sh "docker-compose -f src/main/docker/app.yml up -d"
-        sh "docker-compose -f src/main/docker/app.yml ps"
+//        sh "docker-compose -f src/main/docker/app.yml up -d"
+//        sh "docker-compose -f src/main/docker/app.yml ps"
+
         stage 'archive results'
-        step([$class: 'ArtifactArchiver',artifacts: '**/target/*.war',fingerprint: true])
-        step([$class: 'JUnitResultArchiver',testResults: '**/target/surefire-reports/TEST-*.xml'])
-        step([$class: 'JUnitResultArchiver',testResults: '**/target/test-results/karma/TESTS-results.xml',allowEmptyResults: true])
-        //name pattern must match path in ./src/test/javascript/karma.conf.js
+
 
 
 
 //        runParallel()
         stage 'deploy app'
-        sh "docker-compose -f src/main/docker/app.yml up -d"
-        sh "docker-compose -f src/main/docker/app.yml ps"
+//        sh "docker-compose -f src/main/docker/app.yml up -d"
+//        sh "docker-compose -f src/main/docker/app.yml ps"
     }
+}
+
+private void runSingleThreadBuild() {
+
+    sh "mvn -B -Pprod verify docker:build" // run tests
+    stage 'docker build'
+    echo "NA"
+//        sh "mvn docker:build"  //docker-maven-plugin builds our docker image
+    stage 'docker up'
+    sh "docker-compose -f src/main/docker/app.yml up -d"
+    sh "docker-compose -f src/main/docker/app.yml ps"
 }
 
 private void runParallel() {

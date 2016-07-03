@@ -766,6 +766,74 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+            <id>prodtest</id>
+            <!-- use this profile to run gulp test without first running the slow things like npm install, etc
+            The intention here is to run maven twice: once to build a production war and again to run the tests against the production build
+            $ mvn -B -Pprod clean verify -DskipTests
+            $ mvn -B -Pprodtest verify
+            -->
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>1.0</version>
+                        <executions>
+                            <execution>
+                                <id>gulp test</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>gulp</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>test --no-notification</arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <version>2.5</version>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>target/www/</directory>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <configuration>
+                            <warSourceDirectory>target/www/</warSourceDirectory>
+                            <packagingExcludes>WEB-INF/lib/tomcat-*.jar</packagingExcludes>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <configuration>
+                            <executable>true</executable>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <properties>
+                <!-- log configuration -->
+                <logback.loglevel>INFO</logback.loglevel>
+                <!-- default Spring profiles -->
+                <spring.profiles.active>prod${profile.no-liquibase}${profile.no-swagger}</spring.profiles.active>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+
     </profiles>
 
 </project>
