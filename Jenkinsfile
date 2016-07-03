@@ -1,8 +1,7 @@
 #!groovy
 def starttime = System.currentTimeMillis()
 node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs installed
-    def nodereadytime = System.currentTimeMillis() - starttime
-    println("begin build $nodereadytime")
+    println("begin: build node ready in ${(System.currentTimeMillis() - starttime) /1000}  seconds")
     wrap([$class: 'TimestamperBuildWrapper']) {  //wrap each Jenkins job console output line with timestamp
         stage "build setup"
         checkout scm
@@ -22,12 +21,14 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
             sh "mvn  -B -Pprodtest verify"
             step([$class: 'JUnitResultArchiver',testResults: '**/target/surefire-reports/TEST-*.xml'])
             step([$class: 'JUnitResultArchiver',testResults: '**/target/test-results/karma/TESTS-results.xml',allowEmptyResults: true])        //name pattern must match path in ./src/test/javascript/karma.conf.js
+            println("testing finished in ${(System.currentTimeMillis() -starttime) /1000} seconds")
 
         }, docker: {
             sh "mvn -B docker:build"
             sh "docker-compose -f src/main/docker/app.yml up -d"
             sh "docker-compose -f src/main/docker/app.yml ps"
             sh "echo \"app should be running at http://\$(docker info | sed -n 's/^Name: //'p):8080/\""
+            println("app ready in ${(System.currentTimeMillis() -starttime) /1000} seconds")
         }
     }
 }
