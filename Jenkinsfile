@@ -5,17 +5,11 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
     wrap([$class: 'TimestamperBuildWrapper']) {  //wrap each Jenkins job console output line with timestamp
         stage "build setup"
         checkout scm
-        def ver = regexVersion()
-        if (ver) {
-            echo "Building version $ver"
-        } else {
-            echo "Building version unknown"
-        }
-        tooloverride()
+        echo "Building version ${regexVersion()}"
         whereami()
         stage 'production war'
         sh "mvn  -B clean -Pprod verify -DskipTests"
-        stage 'docker image/prod test'
+        stage 'docker image/ prod test'
         parallel Java: {
             step([$class: 'ArtifactArchiver',artifacts: '**/target/*.war',fingerprint: true])
             sh "mvn  -B -Pprodtest verify"
@@ -30,6 +24,7 @@ node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs in
             sh "echo \"app should be running at http://\$(docker info | sed -n 's/^Name: //'p):8080/\""
             println("app ready in ${(System.currentTimeMillis() -starttime) /1000} seconds")
         }
+        sh "echo \"Reminder: app should already be running at http://\$(docker info | sed -n 's/^Name: //'p):8080/\""
     }
 }
 
@@ -64,21 +59,6 @@ private void runParallel() {
     }
 }
 
-private void tooloverride() {
-    try {
-        def javaHOME = tool 'Oracle JDK 8u25' //tool name must match JDK installation in Jenkins->Configuration
-        echo "tool override: using Java from Jenkins->configuration->JDK installations"
-        env.PATH = "${javaHOME}/bin:${env.PATH}"
-    } catch (Exception e) {
-    }
-
-    try{
-        def mvnHome = tool 'M3' //tool name must match maven installation in Jenkins->Configuration
-        echo "tool override: using Maven from Jenkins->configuration->Maven installations"
-        env.PATH = "${mvnHome}/bin:${env.PATH}"
-    } catch (Exception e){
-    }
-}
 
 private void whereami() {
     /**
