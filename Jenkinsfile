@@ -1,6 +1,8 @@
 #!groovy
+def starttime = System.currentTimeMillis()
 node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs installed
-    println("begin build")
+    def nodereadytime = System.currentTimeMillis() - starttime
+    println("begin build $nodereadytime")
     wrap([$class: 'TimestamperBuildWrapper']) {  //wrap each Jenkins job console output line with timestamp
         stage "build setup"
         checkout scm
