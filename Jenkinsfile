@@ -1,7 +1,7 @@
 #!groovy
 def starttime = System.currentTimeMillis()
 node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs installed
-println("hi auto again there buddy!! and again")
+println("hi auto again there buddy!! and again. one more time now...")
     println("begin: build node ready in ${(System.currentTimeMillis() - starttime) /1000}  seconds")
     wrap([$class: 'TimestamperBuildWrapper']) {  //wrap each Jenkins job console output line with timestamp
         stage "build setup"
@@ -23,7 +23,7 @@ println("hi auto again there buddy!! and again")
             sh "mvn -B docker:build"
             sh "docker-compose -f src/main/docker/app.yml up -d"
             sh "docker-compose -f src/main/docker/app.yml ps"
-            sh "echo \"app should be running at http://\$(docker info | sed -n 's/^Name: //'p):8080/\""
+            sh "echo \"app is starting... http://\$(docker info | sed -n 's/^Name: //'p):8080/\""
             println("app ready in ${(System.currentTimeMillis() -starttime) /1000} seconds")
         }
         sh "echo \"Reminder: app should already be running at http://\$(docker info | sed -n 's/^Name: //'p):8080/\""
