@@ -15,7 +15,7 @@ println("hi auto again there buddy!! and again. one more time now... again")
         stage 'docker image/ prod test'
         parallel Java: {
             step([$class: 'ArtifactArchiver',artifacts: '**/target/*.war',fingerprint: true])
-            sh "mvn  -B -Pprodtest verify"
+            sh "TZ=America/Denver mvn  -B -Pprodtest verify"
             step([$class: 'JUnitResultArchiver',testResults: '**/target/surefire-reports/TEST-*.xml'])
             step([$class: 'JUnitResultArchiver',testResults: '**/target/test-results/karma/TESTS-results.xml',allowEmptyResults: true])        //name pattern must match path in ./src/test/javascript/karma.conf.js
             println("testing finished in ${(System.currentTimeMillis() -starttime) /1000} seconds")
