@@ -2,7 +2,7 @@
 def starttime = System.currentTimeMillis()
 stage "provision build node"
 node('nodejs4.4.5') {  //this node label must match jenkins slave with nodejs installed
-println("hi auto again there buddy!! and again. one more time now... again. yo")
+println("hi auto again there buddy!! and again. one more time now... again. yo there")
     println("begin: build node ready in ${(System.currentTimeMillis() - starttime) /1000}  seconds")
     wrap([$class: 'TimestamperBuildWrapper']) {  //wrap each Jenkins job console output line with timestamp
         stage "build setup"
